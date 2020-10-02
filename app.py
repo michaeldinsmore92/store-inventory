@@ -49,19 +49,23 @@ def show_menu():
     """Show the menu"""
     choice = None
     valid_choices = ['v', 'a', 'b', 'q']
-    
-    while choice != 'q':
-        clear()
-        print("Enter 'q' to quit")
-        for key, value in menu.items():
-            print('{}) {}'.format(key, value.__doc__))
-        choice = input('Action: ').lower().strip()
-        if choice not in valid_choices:
-            print("Sorry! That's not a valid option! ")
-            input("Press 'enter' and try again... ")
-        elif choice in menu:
+    try:
+        while choice != 'q':
             clear()
-            menu[choice]()
+            print("Enter 'q' to quit")
+            for key, value in menu.items():
+                print('{}) {}'.format(key, value.__doc__))
+            choice = input('Action: ').lower().strip()
+            if choice not in valid_choices:
+                print("Sorry! That's not a valid option! ")
+                input("Press 'enter' and try again... ")
+            elif choice in menu:
+                clear()
+                menu[choice]()
+    except KeyboardInterrupt:
+        pass
+    except EOFError:
+        pass
     
 def view_product():
     """View a single product's inventory"""
