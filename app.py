@@ -11,10 +11,10 @@ db = SqliteDatabase('inventory.db')
 
 class Product(Model):
     product_id = AutoField(unique=True, primary_key=True)
-    product_name = TextField()
+    product_name = TextField(unique=True)
     product_quantity = IntegerField(default=0)
-    product_price = IntegerField(default=0, unique=True)
-    date_updated = DateTimeField(formats='%m/%d/%Y', default=datetime.datetime.now().strftime('%m/%d/%Y'))
+    product_price = IntegerField(default=0)
+    date_updated = DateTimeField(default=datetime.datetime.now())
     
     class Meta:
         database = db
@@ -27,15 +27,17 @@ def create_products():
         for row in reader:
             try:
                 Product.create(product_name = row['product_name'],
-                               product_quantity = row['product_quantity'],
-                               product_price = row['product_price'].replace('$', '').replace('.', ''),
-                               date_updated = row['date_updated']
+                               product_quantity = int(row['product_quantity']),
+                               product_price = int(row['product_price'].replace('$', '').replace('.', '')),
+                               date_updated = datetime.datetime.strptime(row['date_updated'], '%m/%d/%Y').date()
                                )
             except IntegrityError:
-                products.product_name = row['product_name']
-                products.product_quantity = row['product_quantity']
-                products.product_price = row['product_price']
-                products.date_updated = row['date_updated']
+                new = datetime.datetime.strptime(row['date_updated'], '%m/%d/%Y')
+                conflict = Product.get(product_name=row['product_name'])
+                
+                if new >= conflict.date_updated:
+                    conflict.date_updated = datetime.datetime.strptime(row['date_updated'], '%m/%d/%Y').date()
+                    conflict.save()
 
 def initialize():
     """Create database and tables"""
@@ -81,7 +83,7 @@ def view_product():
             print(f"Name: {product_name}")
             print(f"Price: {product_price}")
             print(f"Quantity: {product_quantity}")
-            print(f"Date Updated: {date_updated}")
+            print(f"Date Updated: {date_updated.date()}")
         else:
             print("Sorry that's not a valid value... ")
     except ValueError:
@@ -98,16 +100,18 @@ def add_product():
     if choice_name and choice_quantity and choice_price:
         try:
             Product.create(product_name = choice_name,
-                           product_quantity = choice_quantity,
-                           product_price = choice_price,
-                           date_updated = datetime.datetime.now().strftime('%m/%d/%Y')
+                           product_quantity = int(choice_quantity),
+                           product_price = int(choice_price.replace('$', '').replace('.', '')),
+                           date_updated = datetime.datetime.now().date()
                            )
             print("Added successfully!")
+        except ValueError:
+            print('Sorry, only integers are allowed for quantity and price... ')
         except IntegrityError:
             product = Product.get(product_name=choice_name)
             product.product_quantity = choice_quantity
             product.product_price = choice_price
-            product.date_updated = datetime.datetime.now().strftime('%m/%d/%Y')
+            product.date_updated = datetime.datetime.now().date()
             product.save()
             
             print("That item already exists... ")
