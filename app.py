@@ -12,9 +12,9 @@ db = SqliteDatabase('inventory.db')
 class Product(Model):
     product_id = AutoField(unique=True, primary_key=True)
     product_name = TextField()
-    product_quantity = IntegerField()
-    product_price = IntegerField(unique=True)
-    date_updated = DateTimeField(formats='%m/%d/%Y')
+    product_quantity = IntegerField(default=0)
+    product_price = IntegerField(default=0, unique=True)
+    date_updated = DateTimeField(formats='%m/%d/%Y', default=datetime.datetime.now().strftime('%m/%d/%Y'))
     
     class Meta:
         database = db
@@ -91,27 +91,29 @@ def view_product():
 
 def add_product():
     """Add a new product to the database"""
-    
     choice_name = input("Please enter Product Name: ").title().strip()
     choice_quantity = input("Please enter Quantity: ").strip()
     choice_price = input("Please enter Product Price: ").strip()
     
-    try:
-        Product.create(product_name = choice_name,
-                       product_quantity = choice_quantity,
-                       product_price = choice_price,
-                       date_updated = datetime.datetime.now().strftime('%m/%d/%Y')
-                       )
-        print("Added successfully!")
-    except IntegrityError:
-        product = Product.get(product_name=choice_name)
-        product.product_quantity = choice_quantity
-        product.product_price = choice_price
-        product.date_updated = datetime.datetime.now().strftime('%m/%d/%Y')
-        product.save()
-        
-        print("That item already exists... ")
-        print("Product info has been updated! ")
+    if choice_name and choice_quantity and choice_price:
+        try:
+            Product.create(product_name = choice_name,
+                           product_quantity = choice_quantity,
+                           product_price = choice_price,
+                           date_updated = datetime.datetime.now().strftime('%m/%d/%Y')
+                           )
+            print("Added successfully!")
+        except IntegrityError:
+            product = Product.get(product_name=choice_name)
+            product.product_quantity = choice_quantity
+            product.product_price = choice_price
+            product.date_updated = datetime.datetime.now().strftime('%m/%d/%Y')
+            product.save()
+            
+            print("That item already exists... ")
+            print("Product info has been updated! ")
+    else:
+        print('Sorry an error has occurred... ')
         
     input("Press 'enter' to continue... ")
 
