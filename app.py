@@ -75,7 +75,7 @@ def view_product():
     search = input("Please enter Product ID: ").strip()
     
     try:
-        if int(search) < len(products):
+        if int(search) < len(products) and int(search) > 0:
             product_name = Product.get(Product.product_id == search).product_name
             product_price = Product.get(Product.product_id == search).product_price
             product_quantity = Product.get(Product.product_id == search).product_quantity
